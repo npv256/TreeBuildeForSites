@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CsQuery;
 using CsQuery.Implementation;
+using HtmlAgilityPack;
 
 namespace TreeBuilderOfSites
 {
@@ -22,35 +23,23 @@ namespace TreeBuilderOfSites
 
         }
 
-        public List<IDomObject> ParseElemsA(string url)
+        public IEnumerable<HtmlNode> ParseElemsA(string url)
         {
-            string HtmlText = string.Empty;
-            HttpWebResponse myHttpWebresponse = null;
-            try
-            {
-                HttpWebRequest myHttwebrequest = (HttpWebRequest)HttpWebRequest.Create(url);
-                myHttpWebresponse = (HttpWebResponse)myHttwebrequest.GetResponse();
-            }
-            catch (Exception)
-            {
-                return new List<IDomObject>();
-            }
-            StreamReader strm = new StreamReader(myHttpWebresponse.GetResponseStream());
-            HtmlText = strm.ReadToEnd();
-            CQ dom = HtmlText;
-            var aElems = dom["a"];
-            return aElems.ToList();
+            var doc = new HtmlWeb().Load(url);
+            var linkTags = doc.DocumentNode.Descendants("link");
+            var linkedPages = doc.DocumentNode.Descendants("a");
+            return linkedPages;
         }
 
-        public string ParseTag(CQ elem)
+        public string ParseTag(HtmlNode node)
         {
-            string tag = elem.Text();
+            string tag = node.InnerText;
             return tag;
         }
 
-        public string ParseHref(CQ elem)
+        public string ParseHref(HtmlNode node)
         {
-            string href = elem.Attr("href");
+            string href = node.GetAttributeValue("href", null);
             if (href == null) return href = "";
             if (href == "/") href = domein;
             if (!href.Contains(domein))
@@ -60,47 +49,65 @@ namespace TreeBuilderOfSites
             return href;
         }
 
-        public ElementEntity  creator(CQ objCQ)
+        public ElementEntity  creator(HtmlNode node)
         {
             ElementEntity objElEntity = new ElementEntity();
-            objElEntity.url = ParseHref(objCQ);
-            objElEntity.tag = ParseTag(objCQ);
+            objElEntity.url = ParseHref(node);
+            objElEntity.tag = ParseTag(node);
             return objElEntity;
         }
 
         public void recursAdd(string url)
         {
-
             foreach (var elA in ParseElemsA(url))
             {
-                if (!AllUrl.ContainsValue(ParseHref(elA.Cq())))
+                if (!AllUrl.ContainsValue(ParseHref(elA)))
                 {
-                    AllUrl.Add(creator(elA.Cq()), ParseHref(elA.Cq()));
-                    recursAdd(ParseHref(elA.Cq()));
+                    AllUrl.Add(creator(elA), ParseHref(elA));
+                    recursAdd(ParseHref(elA));
+                    //foreach (var elemA in ParseElemsA(url))
+                    //{
+                    //    var url1 = ParseHref(elemA);
+                    //    var En = AllUrl.Keys.Select(entity => entity).Where(k => k.url == url1);
+                    //    ElementEntity s =  En.First();
+                    //}
                 }
             }
         }
 
-        public void editObj(ElementEntity obj)
+        public void setGenerals()
         {
-            ElementEntity objElEntity = obj;
-            foreach (var el in AllUrl)
+            foreach (var key in AllUrl.Keys)
             {
-                if (el.Key.generals.Find(entity => entity.url == objElEntity.url) != null)
-                    objElEntity.parent = el.Key;
-            }
+                foreach (var elemA in ParseElemsA(key.url))
+                {
+                    var url = ParseHref(elemA);
 
-            foreach (var elA in ParseElemsA(objElEntity.url))
-            {
-                if (AllUrl.ContainsValue(elA.Cq().Attr("href")))
-                {
-                    objElEntity.generals.Add(AllUrl.Keys.Where(entity => entity.url == elA.Cq().Attr("href")).First());
-                }
-                else
-                {
-                    objElEntity.generals.Add(creator(elA.Cq()));
+                    key.generals.Add(AllUrl.Keys.Select(entity => entity).Where(k => k.url == url).FirstOrDefault());
+                    //key.generals.Add(AllUrl.Keys.Where(entity =>entity.url==ParseHref(elemA)).First()
+                    //    );
+                    
+                    //    //AllUrl.Keys.Select(entity => entity)
+                    //    //.Where(entity => entity.url == ParseHref(elemA))
+                    //    //.First());
                 }
             }
         }
+
+        //public ElementEntity getParrent(ElementEntity objElementEntity)
+        //{
+
+        //    return AllUrl.Keys.Select(entity => entity)
+        //        .Where()
+
+        //public void setParent()
+        //{
+        //    foreach (var elUrl in AllUrl)
+        //    {
+        //        elUrl.Key.parent
+        //    }
+        //}
+
+        
     }
 }

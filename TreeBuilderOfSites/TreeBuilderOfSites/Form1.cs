@@ -23,7 +23,7 @@ namespace TreeBuilderOfSites
             BLL obj = new BLL(testUrl);
             obj.recursAdd(testUrl);
             var s= obj.AllUrl.Count;
-
+            obj.setGenerals();
         }
     }
 }
