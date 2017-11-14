@@ -20,9 +20,10 @@ namespace TreeBuilderOfSites
         private void buttonStart_Click(object sender, EventArgs e)
         {
             string testUrl = "https://professorweb.ru/";
-            BLL obj = new BLL();
-            obj.createrFirst(testUrl);
-            
+            BLL obj = new BLL(testUrl);
+            obj.recursAdd(testUrl);
+            var s= obj.AllUrl.Count;
+
         }
     }
 }
