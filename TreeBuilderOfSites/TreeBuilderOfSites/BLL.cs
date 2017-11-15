@@ -4,8 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CsQuery;
+using CsQuery.ExtensionMethods.Internal;
 using CsQuery.Implementation;
 using HtmlAgilityPack;
 
@@ -13,22 +15,28 @@ namespace TreeBuilderOfSites
 {
     public class BLL
     {
-       public Dictionary<ElementEntity, string> AllUrl = new Dictionary<ElementEntity, string>();
+        public Dictionary<ElementEntity, string> AllUrl = new Dictionary<ElementEntity, string>();
         ElementEntity FirstObj;
-        private string domein { get; set; }
+        public string domein { get; set; }
 
-        public BLL(string url)
+        public BLL( )
         {
-            domein = url;
-
         }
 
         public IEnumerable<HtmlNode> ParseElemsA(string url)
         {
-            var doc = new HtmlWeb().Load(url);
-            var linkTags = doc.DocumentNode.Descendants("link");
-            var linkedPages = doc.DocumentNode.Descendants("a");
-            return linkedPages;
+            try
+            {
+                var doc = new HtmlWeb().Load(url);
+                var linkTags = doc.DocumentNode.Descendants("link");
+                var linkedPages = doc.DocumentNode.Descendants("a");
+                return linkedPages;
+            }
+            catch (Exception)
+            {
+                
+                throw new Exception("Url is not correct");
+            }
         }
 
         public string ParseTag(HtmlNode node)
@@ -39,17 +47,42 @@ namespace TreeBuilderOfSites
 
         public string ParseHref(HtmlNode node)
         {
-            string href = node.GetAttributeValue("href", null);
-            if (href == null) return href = "";
-            if (href == "/") href = domein;
-            if (!href.Contains(domein))
-                href = domein + href;
-            if (href.Replace(domein,"").Contains("http"))
-                href = domein;
-            return href;
+            try
+            {
+                Uri root = new Uri(domein);
+                string href = node.GetAttributeValue("href", null);
+                if (href.StartsWith("javascript", StringComparison.InvariantCultureIgnoreCase))
+                ; // ignore javascript on buttons using a tags
+                else
+                {
+                    Uri urlNext = new Uri(href, UriKind.RelativeOrAbsolute);
+                    if (!urlNext.IsAbsoluteUri)
+                    {
+                        urlNext = new Uri(root, urlNext);
+                    }
+                    href = urlNext.ToString();
+                }
+
+                if (href.IsNullOrEmpty()) return null;
+                if (href == "/") href = domein;
+                if (!href.Contains(domein))
+                {
+                    if (href.First() == '/')
+                        href = href.Remove(0, 1);
+                    href = domein + href;
+                }
+                if (href.Replace(domein, "").Contains("http"))
+                    return null;
+                if (href.Contains("forum")) return null;
+                return href;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
-        public ElementEntity  creator(HtmlNode node)
+        public ElementEntity creator(HtmlNode node)
         {
             ElementEntity objElEntity = new ElementEntity();
             objElEntity.url = ParseHref(node);
@@ -59,55 +92,74 @@ namespace TreeBuilderOfSites
 
         public void recursAdd(string url)
         {
-            foreach (var elA in ParseElemsA(url))
+          foreach (var elA in ParseElemsA(url))
             {
-                if (!AllUrl.ContainsValue(ParseHref(elA)))
+           // var elA = ParseElemsA(url).First();
+                if (!AllUrl.ContainsValue(elA.GetAttributeValue("href", null)))
                 {
-                    AllUrl.Add(creator(elA), ParseHref(elA));
-                    recursAdd(ParseHref(elA));
-                    //foreach (var elemA in ParseElemsA(url))
-                    //{
-                    //    var url1 = ParseHref(elemA);
-                    //    var En = AllUrl.Keys.Select(entity => entity).Where(k => k.url == url1);
-                    //    ElementEntity s =  En.First();
-                    //}
-                }
+                    var urlEd = ParseHref(elA);
+                    if (urlEd.IsNullOrEmpty()) continue;
+                    AllUrl.Add(creator(elA), elA.GetAttributeValue("href", null));
+                    ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
+                        {
+                            recursAdd(urlEd);
+                        }
+                    ));
+               }
             }
         }
 
         public void setGenerals()
         {
+            int nMaxThreads;
+            int nWorkerThreads;
+            int nCompletionThreads;
+            ThreadPool.GetMaxThreads(out nMaxThreads, out nCompletionThreads);
+            ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
+            while (nWorkerThreads != nMaxThreads)
+            {
+                ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
+                Thread.Sleep(1000);
+            }
             foreach (var key in AllUrl.Keys)
             {
-                foreach (var elemA in ParseElemsA(key.url))
-                {
-                    var url = ParseHref(elemA);
-
-                    key.generals.Add(AllUrl.Keys.Select(entity => entity).Where(k => k.url == url).FirstOrDefault());
-                    //key.generals.Add(AllUrl.Keys.Where(entity =>entity.url==ParseHref(elemA)).First()
-                    //    );
-                    
-                    //    //AllUrl.Keys.Select(entity => entity)
-                    //    //.Where(entity => entity.url == ParseHref(elemA))
-                    //    //.First());
-                }
+                ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
+                    {
+                        foreach (var elemA in ParseElemsA(key.url))
+                        {
+                            var url = ParseHref(elemA);
+                            if(!url.IsNullOrEmpty())
+                            key.generals.Add(
+                                AllUrl.Keys.Select(entity => entity).Where(k => k.url == url).FirstOrDefault());
+                        }
+                    }
+                ));
             }
         }
 
-        //public ElementEntity getParrent(ElementEntity objElementEntity)
-        //{
+        public void setParent()
+        {
+            foreach (var key in AllUrl.Keys)
+            {
+                key.parent = AllUrl.Keys
+                    .Where(entity => entity.generals.Contains(key)
+                ).FirstOrDefault(); 
+            }
+        }
 
-        //    return AllUrl.Keys.Select(entity => entity)
-        //        .Where()
-
-        //public void setParent()
-        //{
-        //    foreach (var elUrl in AllUrl)
-        //    {
-        //        elUrl.Key.parent
-        //    }
-        //}
-
-        
-    }
+        public void drow()
+        {
+            int nMaxThreads;
+            int nWorkerThreads;
+            int nCompletionThreads;
+            ThreadPool.GetMaxThreads(out nMaxThreads, out nCompletionThreads);
+            ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
+            while (nWorkerThreads != nMaxThreads)
+            {
+                ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
+                Thread.Sleep(1000);
+            }
+            
+        }
+    }   
 }

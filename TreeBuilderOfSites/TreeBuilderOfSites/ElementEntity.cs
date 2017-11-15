@@ -10,7 +10,6 @@ namespace TreeBuilderOfSites
     {
         public ElementEntity()
         {
-            
         } 
 
         public string url { get; set; }
@@ -19,6 +18,6 @@ namespace TreeBuilderOfSites
 
         public ElementEntity parent { get; set; }
 
-        public List<ElementEntity> generals { get; set; }
+        public List<ElementEntity> generals = new List<ElementEntity>();
     }
 }

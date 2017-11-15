@@ -7,11 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CsQuery.ExtensionMethods.Internal;
 
 namespace TreeBuilderOfSites
 {
     public partial class Form1 : Form
     {
+        BLL obj = new BLL();
+
         public Form1()
         {
             InitializeComponent();
@@ -19,11 +22,54 @@ namespace TreeBuilderOfSites
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            string testUrl = "https://professorweb.ru/";
-            BLL obj = new BLL(testUrl);
+            string testUrl = "";
+            if (textBoxUrl.Text.ToString().IsNullOrEmpty() || textBoxUrl.Text == "Please input url of site")
+            {
+                testUrl = "https://professorweb.ru/";
+            }
+            else
+            {
+                testUrl = textBoxUrl.Text;
+            }
+            obj.domein = testUrl;
             obj.recursAdd(testUrl);
-            var s= obj.AllUrl.Count;
             obj.setGenerals();
+            obj.drow();
+            obj.setParent();
+            var s = obj.AllUrl;
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+        }
+
+        private void SelectByTag_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                listView1.Items.Clear();
+                listView2.Items.Clear();
+                ElementEntity ElObj = obj.AllUrl.Keys.Where(entity => entity.tag == textBox1.Text).FirstOrDefault();
+                ListViewItem lvi = new ListViewItem(ElObj.tag);
+                lvi.SubItems.Add(ElObj.url);
+                lvi.SubItems.Add(ElObj.parent.tag);
+                listView2.Items.Add(lvi);
+                foreach (var key in ElObj.generals)
+                {
+                    ElementEntity GenObj = new ElementEntity();
+                    GenObj = key;
+                    ListViewItem lvi2 = new ListViewItem(GenObj.tag);
+                    lvi2.SubItems.Add(GenObj.url);
+                    lvi2.SubItems.Add(GenObj.parent.tag);
+                    listView1.Items.Add(lvi2);
+                }
+            }
+            catch (Exception)
+            {
+
+                
+            }
+            
         }
     }
 }
