@@ -37,6 +37,10 @@ namespace TreeBuilderOfSites
             obj.drow();
             obj.setParent();
             var s = obj.AllUrl;
+            foreach (var key in obj.AllUrl.Keys)
+            {
+                comboBox1.Items.Add(key.tag);
+            }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
@@ -49,7 +53,7 @@ namespace TreeBuilderOfSites
             {
                 listView1.Items.Clear();
                 listView2.Items.Clear();
-                ElementEntity ElObj = obj.AllUrl.Keys.Where(entity => entity.tag == textBox1.Text).FirstOrDefault();
+                ElementEntity ElObj = obj.AllUrl.Keys.Where(entity => entity.tag == comboBox1.Text).FirstOrDefault();
                 ListViewItem lvi = new ListViewItem(ElObj.tag);
                 lvi.SubItems.Add(ElObj.url);
                 lvi.SubItems.Add(ElObj.parent.tag);
@@ -70,6 +74,11 @@ namespace TreeBuilderOfSites
                 
             }
             
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

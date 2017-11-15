@@ -98,7 +98,7 @@ namespace TreeBuilderOfSites
                 if (!AllUrl.ContainsValue(elA.GetAttributeValue("href", null)))
                 {
                     var urlEd = ParseHref(elA);
-                    if (urlEd.IsNullOrEmpty()) continue;
+                    if (urlEd.IsNullOrEmpty()||ParseTag(elA).IsNullOrEmpty()) continue;
                     AllUrl.Add(creator(elA), elA.GetAttributeValue("href", null));
                     ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
                         {
@@ -111,16 +111,7 @@ namespace TreeBuilderOfSites
 
         public void setGenerals()
         {
-            int nMaxThreads;
-            int nWorkerThreads;
-            int nCompletionThreads;
-            ThreadPool.GetMaxThreads(out nMaxThreads, out nCompletionThreads);
-            ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
-            while (nWorkerThreads != nMaxThreads)
-            {
-                ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
-                Thread.Sleep(1000);
-            }
+            drow();
             foreach (var key in AllUrl.Keys)
             {
                 ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
@@ -147,7 +138,7 @@ namespace TreeBuilderOfSites
             }
         }
 
-        public void drow()
+        public bool drow()
         {
             int nMaxThreads;
             int nWorkerThreads;
@@ -159,7 +150,7 @@ namespace TreeBuilderOfSites
                 ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
                 Thread.Sleep(1000);
             }
-            
+            return true;
         }
     }   
 }

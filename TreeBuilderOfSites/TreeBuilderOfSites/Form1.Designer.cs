@@ -30,7 +30,6 @@
         {
             this.textBoxUrl = new System.Windows.Forms.TextBox();
             this.buttonStart = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.listView1 = new System.Windows.Forms.ListView();
             this.SelectByTag = new System.Windows.Forms.Button();
             this.listView2 = new System.Windows.Forms.ListView();
@@ -40,6 +39,7 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // textBoxUrl
@@ -60,15 +60,6 @@
             this.buttonStart.UseVisualStyleBackColor = true;
             this.buttonStart.Click += new System.EventHandler(this.buttonStart_Click);
             // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(296, 67);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(256, 20);
-            this.textBox1.TabIndex = 3;
-            this.textBox1.Text = "Please input a tag of node";
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
             // listView1
             // 
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
@@ -77,7 +68,7 @@
             this.columnHeader6});
             this.listView1.Location = new System.Drawing.Point(12, 166);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(540, 237);
+            this.listView1.Size = new System.Drawing.Size(540, 135);
             this.listView1.TabIndex = 4;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -135,15 +126,24 @@
             this.columnHeader6.Text = "Parrent";
             this.columnHeader6.Width = 374;
             // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(296, 64);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(256, 21);
+            this.comboBox1.TabIndex = 7;
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(558, 411);
+            this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.listView2);
             this.Controls.Add(this.SelectByTag);
             this.Controls.Add(this.listView1);
-            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.buttonStart);
             this.Controls.Add(this.textBoxUrl);
             this.Name = "Form1";
@@ -156,7 +156,6 @@
         #endregion
         private System.Windows.Forms.TextBox textBoxUrl;
         private System.Windows.Forms.Button buttonStart;
-        private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.Button SelectByTag;
         private System.Windows.Forms.ColumnHeader columnHeader1;
@@ -166,6 +165,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.ComboBox comboBox1;
     }
 }
 
