@@ -32,16 +32,16 @@ namespace TreeBuilderOfSites
                 var linkedPages = doc.DocumentNode.Descendants("a");
                 return linkedPages;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                
-                throw new Exception("Url is not correct");
+                throw new Exception("Url is not correct", e);
             }
         }
 
         public string ParseTag(HtmlNode node)
         {
             string tag = node.InnerText;
+            tag = tag.ToUpper();
             return tag;
         }
 
@@ -51,8 +51,7 @@ namespace TreeBuilderOfSites
             {
                 Uri root = new Uri(domein);
                 string href = node.GetAttributeValue("href", null);
-                if (href.StartsWith("javascript", StringComparison.InvariantCultureIgnoreCase))
-                ; // ignore javascript on buttons using a tags
+                if (href.StartsWith("javascript", StringComparison.InvariantCultureIgnoreCase)); // ignore javascript on buttons using a tags
                 else
                 {
                     Uri urlNext = new Uri(href, UriKind.RelativeOrAbsolute);
@@ -92,39 +91,35 @@ namespace TreeBuilderOfSites
 
         public void recursAdd(string url)
         {
-          foreach (var elA in ParseElemsA(url))
+            if (!url.Contains("docx") || url.Contains("xmlx")) 
+                foreach (var elA in ParseElemsA(url))
             {
-           // var elA = ParseElemsA(url).First();
                 if (!AllUrl.ContainsValue(elA.GetAttributeValue("href", null)))
                 {
                     var urlEd = ParseHref(elA);
+
                     if (urlEd.IsNullOrEmpty()||ParseTag(elA).IsNullOrEmpty()) continue;
+
                     AllUrl.Add(creator(elA), elA.GetAttributeValue("href", null));
-                    ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
-                        {
-                            recursAdd(urlEd);
-                        }
-                    ));
+                    recursAdd(urlEd);
                }
             }
         }
 
         public void setGenerals()
         {
-            drow();
             foreach (var key in AllUrl.Keys)
             {
-                ThreadPool.QueueUserWorkItem(new WaitCallback((s) =>
-                    {
-                        foreach (var elemA in ParseElemsA(key.url))
-                        {
-                            var url = ParseHref(elemA);
-                            if(!url.IsNullOrEmpty())
-                            key.generals.Add(
-                                AllUrl.Keys.Select(entity => entity).Where(k => k.url == url).FirstOrDefault());
-                        }
-                    }
-                ));
+                foreach (var elemA in ParseElemsA(key.url))
+                {
+                    var url = ParseHref(elemA);
+                    if (!url.IsNullOrEmpty())
+                        key.generals.Add(
+                            AllUrl.Keys.Select(entity => entity)
+                            .Where(k => k.url == url)
+                            .FirstOrDefault()
+                            );
+                }
             }
         }
 
@@ -136,21 +131,6 @@ namespace TreeBuilderOfSites
                     .Where(entity => entity.generals.Contains(key)
                 ).FirstOrDefault(); 
             }
-        }
-
-        public bool drow()
-        {
-            int nMaxThreads;
-            int nWorkerThreads;
-            int nCompletionThreads;
-            ThreadPool.GetMaxThreads(out nMaxThreads, out nCompletionThreads);
-            ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
-            while (nWorkerThreads != nMaxThreads)
-            {
-                ThreadPool.GetAvailableThreads(out nWorkerThreads, out nCompletionThreads);
-                Thread.Sleep(1000);
-            }
-            return true;
         }
     }   
 }

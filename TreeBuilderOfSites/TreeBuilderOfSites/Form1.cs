@@ -25,7 +25,7 @@ namespace TreeBuilderOfSites
             string testUrl = "";
             if (textBoxUrl.Text.ToString().IsNullOrEmpty() || textBoxUrl.Text == "Please input url of site")
             {
-                testUrl = "https://professorweb.ru/";
+                testUrl = "http://www.ci.nsu.ru/";
             }
             else
             {
@@ -34,7 +34,6 @@ namespace TreeBuilderOfSites
             obj.domein = testUrl;
             obj.recursAdd(testUrl);
             obj.setGenerals();
-            obj.drow();
             obj.setParent();
             var s = obj.AllUrl;
             foreach (var key in obj.AllUrl.Keys)
@@ -53,7 +52,7 @@ namespace TreeBuilderOfSites
             {
                 listView1.Items.Clear();
                 listView2.Items.Clear();
-                ElementEntity ElObj = obj.AllUrl.Keys.Where(entity => entity.tag == comboBox1.Text).FirstOrDefault();
+                ElementEntity ElObj = obj.AllUrl.Keys.Where(entity => entity.tag.Contains( comboBox1.Text.ToUpper())).FirstOrDefault();
                 ListViewItem lvi = new ListViewItem(ElObj.tag);
                 lvi.SubItems.Add(ElObj.url);
                 lvi.SubItems.Add(ElObj.parent.tag);
