@@ -22,6 +22,10 @@ namespace TreeBuilderOfSites
 
         private void buttonStart_Click(object sender, EventArgs e)
         {
+            obj.AllUrl.Clear();
+            listView1.Items.Clear();
+            listView2.Items.Clear();
+            comboBox1.Items.Clear();
             string testUrl = "";
             if (textBoxUrl.Text.ToString().IsNullOrEmpty() || textBoxUrl.Text == "Please input url of site")
             {
